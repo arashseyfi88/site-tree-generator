@@ -246,7 +246,7 @@ def draw_tree_boxes_right_and_children_from_box_right(
         plt.close(fig)
 
 
-def generate_pdf(excel_path: str, output_pdf: str = "site_tree.pdf") -> None:
+def generate_pdf(excel_path: str, output_pdf: str = "site_tree.pdf", show: bool = False) -> None:
     # Read & clean
     df = pd.read_excel(excel_path, header=None).fillna("")
     df = df.applymap(lambda x: str(x).strip() if isinstance(x, str) else x)
@@ -293,5 +293,5 @@ def generate_pdf(excel_path: str, output_pdf: str = "site_tree.pdf") -> None:
         box_gap_data=0.25,
         child_gap_data=0.8,
         dpi=150,
-        show=False,
+        show=show,
     )
