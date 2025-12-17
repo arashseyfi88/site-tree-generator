@@ -26,7 +26,7 @@ def main():
 
     generate_pdf(args.input, args.output, show=args.show)
 
-    # If in Colab, auto-download
+    # Auto-download in Colab
     try:
         from google.colab import files  # type: ignore
         files.download(args.output)
