@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "site-tree-generator"
-version = "0.1.4"
+version = "0.1.5"
 description = "Generate site tree PDF from breadcrumb Excel"
 readme = "README.md"
 requires-python = ">=3.9"
