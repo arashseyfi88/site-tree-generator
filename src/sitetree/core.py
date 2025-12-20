@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+import urllib.request
+
 import pandas as pd
 import arabic_reshaper
 from bidi.algorithm import get_display
@@ -8,12 +11,44 @@ from matplotlib import pyplot as plt
 from matplotlib import font_manager as fm
 from matplotlib.patches import FancyBboxPatch
 
+# Persistent reshaper config (more stable)
+_ARABIC_RESHAPER = arabic_reshaper.ArabicReshaper(
+    configuration={
+        "delete_harakat": False,
+        "support_ligatures": True,
+    }
+)
+
 def shape_text(text: str) -> str:
+    text = str(text)
     # Apply shaping only for Arabic/Persian text
-    if any('\u0600' <= ch <= '\u06FF' for ch in text):
-        reshaped = arabic_reshaper.reshape(text)
-        return get_display(reshaped)
+    if any("\u0600" <= ch <= "\u06FF" for ch in text):
+        reshaped = _ARABIC_RESHAPER.reshape(text)
+        # Force RTL direction
+        return get_display(reshaped, base_dir="R")
     return text
+
+
+def _get_font_properties() -> fm.FontProperties:
+    """
+    Use a Persian-capable font if possible (Vazirmatn), otherwise fallback to DejaVu Sans.
+    """
+    # Try to use Vazirmatn for best Persian rendering (downloads once in Colab or local cache)
+    font_path = os.path.join(os.getcwd(), "Vazirmatn-Regular.ttf")
+    if not os.path.exists(font_path):
+        try:
+            urllib.request.urlretrieve(
+                "https://github.com/rastikerdar/vazirmatn/raw/master/fonts/ttf/Vazirmatn-Regular.ttf",
+                font_path
+            )
+        except Exception:
+            font_path = None
+
+    if font_path and os.path.exists(font_path):
+        return fm.FontProperties(fname=font_path)
+
+    # Fallback (usually available)
+    return fm.FontProperties(fname=fm.findfont("DejaVu Sans"))
 
 
 def assign_vertical_positions_fixed(node, depth=0, pos_dict=None, spacing_y=3):
@@ -288,8 +323,8 @@ def generate_pdf(excel_path: str, output_pdf: str = "site_tree.pdf", show: bool 
 
             previous = node
 
-    # Font (safe / available)
-    font_prop = fm.FontProperties(fname=fm.findfont("DejaVu Sans"))
+    # Font (Persian-capable if possible)
+    font_prop = _get_font_properties()
 
     # Draw
     draw_tree_boxes_right_and_children_from_box_right(
